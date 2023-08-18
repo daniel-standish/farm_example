@@ -1,6 +1,7 @@
 package com.standish.farm.service.product;
 
 import com.standish.farm.persistence.repositories.ProductRepository;
+import com.standish.farm.service.AnimalService;
 import com.standish.farm.service.ProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,7 @@ public class RemoveProductTest {
 
     @BeforeEach
     void setUp() {
-        productService = new ProductService(mock(ProductRepository.class));
+        productService = new ProductService(mock(ProductRepository.class), mock(AnimalService.class));
     }
 
     @Test

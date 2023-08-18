@@ -2,6 +2,7 @@ package com.standish.farm.service.product;
 
 import com.standish.farm.persistence.entities.Product;
 import com.standish.farm.persistence.repositories.ProductRepository;
+import com.standish.farm.service.AnimalService;
 import com.standish.farm.service.ProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,7 @@ public class UpdateProductPriceTest {
     @BeforeEach
     void setUp() {
         productRepository = mock(ProductRepository.class);
-        productService = new ProductService(productRepository);
+        productService = new ProductService(productRepository, mock(AnimalService.class));
     }
 
     @Test
@@ -62,7 +63,7 @@ public class UpdateProductPriceTest {
     }
 
     @Test
-    void productNotFound() throws Exception {
+    void productNotFound() {
         when(productRepository.findById(any())).thenReturn(Optional.empty());
         Exception thrown = assertThrows(
                 Exception.class,

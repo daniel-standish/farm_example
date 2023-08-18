@@ -1,6 +1,7 @@
 package com.standish.farm.service.product;
 
 import com.standish.farm.persistence.repositories.ProductRepository;
+import com.standish.farm.service.AnimalService;
 import com.standish.farm.service.ProductService;
 import net.bytebuddy.utility.RandomString;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -19,7 +20,7 @@ class CreateProductTest {
 
     @BeforeEach
     void setUp() {
-        productService = new ProductService(mock(ProductRepository.class));
+        productService = new ProductService(mock(ProductRepository.class), mock(AnimalService.class));
     }
 
     @Test

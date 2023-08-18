@@ -2,7 +2,6 @@ package com.standish.farm.service;
 
 import com.standish.farm.persistence.entities.Product;
 import com.standish.farm.persistence.repositories.ProductRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,15 +10,12 @@ import java.util.Optional;
 @Service
 public class ProductService {
 
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
+    private final AnimalService animalService;
 
-    @Autowired
-    private AnimalService animalService;
-
-    private final List<String> animalTypes = List.of("Sheep", "Cow", "Pig", "Chicken");
-
-    public ProductService(final ProductRepository productRepository) {
+    public ProductService(final ProductRepository productRepository, final AnimalService animalService) {
         this.productRepository = productRepository;
+        this.animalService = animalService;
     }
 
     public void createProduct(final String name, final String type, final int price) throws Exception {
@@ -64,23 +60,38 @@ public class ProductService {
     }
 
     public void purchaseProduct(final Long id, final int quantity) throws Exception {
-        Optional<Product> item = productRepository.findById(id);
-        if(item.isPresent()) {
-            Product product = item.get();
+        try {
+            validateProductId(id);
+            validateProductQuantity(quantity);
+            Optional<Product> item = productRepository.findById(id);
+            if (item.isPresent()) {
+                Product product = item.get();
 
-            if(animalTypes.contains(product.getType())) {
-                animalService.createAnimal(product.getName(), product.getType(), product.getPrice(), quantity);
+                if (animalService.getAnimalTypes().contains(product.getType())) {
+                    animalService.createAnimal(product.getName(), product.getType(), product.getPrice(), quantity);
+                } else {
+                    throw new Exception("Cannot purchase a product of type " + product.getType() + ".");
+                }
             } else {
-                throw new Exception("Cannot purchase a product of type " + product.getType());
+                throw new Exception("Could not find product " + id + ".");
             }
+        } catch (Exception e) {
+            throw new Exception("Could not purchase product. " + e.getMessage());
         }
     }
 
-    public int sellProduct(final Long id, final String type) {
-        if(animalTypes.contains(type)) {
-            return animalService.sellAnimal(id);
+    public int sellProduct(final Long id, final String type) throws Exception {
+        try {
+            validateProductId(id);
+            validateProductType(type);
+            if (animalService.getAnimalTypes().contains(type)) {
+                return animalService.sellAnimal(id);
+            } else {
+                throw new Exception("Cannot sell a product of type " + type + ".");
+            }
+        } catch (Exception e) {
+            throw new Exception("Could not sell product. " + e.getMessage());
         }
-        return 0;
     }
 
     private void validateProductName(final String name) throws Exception {
@@ -99,9 +110,6 @@ public class ProductService {
         if(type == null || type.isBlank()) {
             throw new Exception("Product type is empty or null.");
         }
-        if(!animalTypes.contains(type)) {
-            throw new Exception("Product type is invalid. Product type must be one of the following: " + animalTypes.toString());
-        }
     }
 
     private void validateProductPrice(final int price) throws Exception {
@@ -116,6 +124,15 @@ public class ProductService {
     private void validateProductId(final Long id) throws Exception {
         if(id < 0) {
             throw new Exception("Product ID cannot be negative.");
+        }
+    }
+
+    private void validateProductQuantity(final int quantity) throws Exception {
+        if(quantity < 0) {
+            throw new Exception("Purchase quantity cannot be negative.");
+        }
+        if(quantity > 100) {
+            throw new Exception("Purchase quantity cannot exceed 100.");
         }
     }
 
